@@ -50,10 +50,11 @@ small,.label{font-family:var(--font);font-size:var(--fs-xs);letter-spacing:.18em
 .flap .ch{position:absolute;left:0;width:100%;height:1.4em;display:flex;align-items:center;justify-content:center;color:inherit;font-weight:inherit;font-size:inherit;line-height:1}
 .flap .half.top .ch{top:0}
 .flap .half.bot .ch{top:-0.7em}
-.flap.flipping .half.top{animation:foldTop .17s ease-in}
-.flap.flipping .half.bot{animation:unfoldBot .17s ease-out .17s}
+.flap.flipping .half.top{animation:foldTop .24s ease-in}
+.flap.flipping .half.bot{animation:unfoldBot .24s ease-out .24s}
 @keyframes foldTop{from{transform:rotateX(0)}to{transform:rotateX(-92deg)}}
 @keyframes unfoldBot{from{transform:rotateX(90deg)}to{transform:rotateX(0)}}
+.flap.flap-orange .ch{color:var(--accent)}
 html[data-theme="light"] .flap .half{background:#e8e4da;border-color:#cfc9bc}
 html[data-theme="light"] .flap .half.top{background:#eeeade}
 html[data-theme="light"] .flap .half.bot{background:#ddd7c9}
@@ -425,7 +426,7 @@ html[data-theme="light"] .fgrid a{color:var(--muted)}
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var GLYPHS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789.ABCDEFGHIJKLMNOPQRSTUVWXYZ#';
 
-  /* ---------- パタパタ（ハーフフラップ／flightと同 sauces方式） ---------- */
+  /* ---------- パタパタ（ハーフフラップ） ---------- */
   function makeFlap(){
     var el = document.createElement('span');
     el.className = 'flap';
@@ -444,12 +445,13 @@ html[data-theme="light"] .fgrid a{color:var(--muted)}
     container.innerHTML = '';
     var flaps = [];
     var chars = text.split('');
+    var line = 1;
     for (var j = 0; j < chars.length; j++){
       var ch = chars[j];
-      if (ch === '\n'){ container.appendChild(document.createElement('br')); continue; }
+      if (ch === '\n'){ container.appendChild(document.createElement('br')); line++; continue; }
       var f = makeFlap();
       container.appendChild(f);
-      flaps.push({el:f, target:ch});
+      flaps.push({el:f, target:ch, line:line});
     }
     return flaps;
   }
@@ -457,20 +459,22 @@ html[data-theme="light"] .fgrid a{color:var(--muted)}
     opts = opts || {};
     var dur = opts.duration || 1100;
     var stag = opts.stagger || 65;
+    var onSettle = opts.onSettle || null;
     flaps.forEach(function(item, idx){
-      if (reduced){ setFlap(item.el, item.target); return; }
+      if (reduced){ setFlap(item.el, item.target); if (onSettle) onSettle(item); return; }
       var start = idx * stag;
-      var d = dur + idx * 25;
+      var d = dur + idx * 40;
       setTimeout(function(){
         var t = 0;
         (function tick(){
-          t += 100;
+          t += 150;
           if (t < d){
             flipTo(item.el, GLYPHS[Math.floor(Math.random()*GLYPHS.length)]);
-            setTimeout(tick, 105);
+            setTimeout(tick, 160);
           } else {
             flipTo(item.el, item.target);
-            setTimeout(function(){ item.el.classList.remove('flipping'); }, 360);
+            if (onSettle) onSettle(item);
+            setTimeout(function(){ item.el.classList.remove('flipping'); }, 480);
           }
         })();
       }, start);
@@ -479,14 +483,17 @@ html[data-theme="light"] .fgrid a{color:var(--muted)}
 
   function fireTitle(){
     var t = document.getElementById('flapTitle');
-    spin(buildFlaps(t, 'エナジーを、\n事業の力へ。'), {duration:1300, stagger:80});
+    spin(buildFlaps(t, 'エナジーを、\n事業の力へ。'), {
+      duration:1600, stagger:95,
+      onSettle:function(item){ if (item.line === 2) item.el.classList.add('flap-orange'); }
+    });
   }
 
   var numFired = new WeakSet();
   function fireNum(container){
     if (numFired.has(container)) return;
     numFired.add(container);
-    spin(buildFlaps(container, container.getAttribute('data-to')), {duration:1200, stagger:70});
+    spin(buildFlaps(container, container.getAttribute('data-to')), {duration:1400, stagger:70});
   }
 
   var splash = document.getElementById('splash');
