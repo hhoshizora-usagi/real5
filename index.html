@@ -287,8 +287,8 @@ html[data-theme="light"] .fgrid a{color:var(--muted)}
     <a class="solid-link" href="#business">事業内容を見る →</a>
     <div class="hero__spec">
       <span class="label">INDUSTRIAL ENERGY STORAGE</span>
-      <article><small>MODEL / ES-134-320GMF</small><b>137kWh 産業・商用蓄電池システム</b><p><span class="led-num" data-led="137"></span><span class="u">kWh</span></p></article>
-      <article><small>MODEL / FESS20-134B</small><b>2.7MWh 系統連系大規模蓄電池システム</b><p><span class="led-num" data-led="2.7"></span><span class="u">MWh class</span></p></article>
+      <article><small>MODEL / ES-134-320GMF</small><b>137kWh 産業・商用蓄電池システム</b><p><span class="led-num" data-led="137" data-count="up"></span><span class="u">kWh</span></p></article>
+      <article><small>MODEL / FESS20-134B</small><b>2.7MWh 系統連系大規模蓄電池システム</b><p><span class="led-num" data-led="2.7" data-count="down"></span><span class="u">MWh class</span></p></article>
     </div>
   </div>
   <div class="hero__dots"><button class="on" data-go="0"></button><button data-go="1"></button><button data-go="2"></button></div>
@@ -336,12 +336,12 @@ html[data-theme="light"] .fgrid a{color:var(--muted)}
       <article class="pcard reveal">
         <small>MODEL / ES-134-320GMF</small>
         <h3>137kWh 産業・商用蓄電池システム</h3>
-        <div class="num"><span class="led-num" data-led="137"></span><em>kWh</em></div>
+        <div class="num"><span class="led-num" data-led="137" data-count="up"></span><em>kWh</em></div>
       </article>
       <article class="pcard reveal">
         <small>MODEL / FESS20-134B</small>
         <h3>2.7MWh 系統連系大規模蓄電池システム</h3>
-        <div class="num"><span class="led-num" data-led="2.7"></span><em>MWh class</em></div>
+        <div class="num"><span class="led-num" data-led="2.7" data-count="down"></span><em>MWh class</em></div>
       </article>
     </div>
   </div>
@@ -530,8 +530,10 @@ html[data-theme="light"] .fgrid a{color:var(--muted)}
     '9':['01110','10001','10001','01111','00001','00010','01100'],
     '.':['00000','00000','00000','00000','00000','00000','00100']
   };
-  function makeLED(container, text){
-    container.innerHTML = '';
+
+  var ledContainers = new WeakMap();
+
+  function renderLED(container, text){
     var leds = document.createElement('span');
     leds.className = 'led';
     text.split('').forEach(function(ch){
@@ -548,14 +550,47 @@ html[data-theme="light"] .fgrid a{color:var(--muted)}
       });
       leds.appendChild(dig);
     });
-    container.appendChild(leds);
+    if (ledContainers.has(container)){
+      container.replaceChild(leds, ledContainers.get(container));
+    } else {
+      container.appendChild(leds);
+    }
+    ledContainers.set(container, leds);
+  }
+
+  function padNum(n, decimals){
+    var s = n.toFixed(decimals);
+    return s;
   }
 
   var ledFired = new WeakSet();
   function fireLED(container){
     if (ledFired.has(container)) return;
     ledFired.add(container);
-    makeLED(container, container.getAttribute('data-led'));
+    var target = container.getAttribute('data-led');
+    var dir = container.getAttribute('data-count') || 'up';
+    var max = parseFloat(target);
+    var decimals = (target.split('.')[1] || '').length;
+    if (reduced){ renderLED(container, target); return; }
+    var steps = 28;
+    var dur = 1500;
+    var t0 = null;
+    function frame(ts){
+      if (!t0) t0 = ts;
+      var p = Math.min(1, (ts - t0) / dur);
+      var eased = 1 - Math.pow(1 - p, 3);
+      var v;
+      if (dir === 'down'){
+        v = max - (max - 0) * (1 - eased);
+        v = max * eased;
+        v = max * (1 - (1 - eased));
+      }
+      v = max * eased;
+      renderLED(container, padNum(v, decimals));
+      if (p < 1) requestAnimationFrame(frame);
+      else renderLED(container, target);
+    }
+    requestAnimationFrame(frame);
   }
 
   var splash = document.getElementById('splash');
