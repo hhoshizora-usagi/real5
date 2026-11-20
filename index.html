@@ -572,20 +572,13 @@ html[data-theme="light"] .fgrid a{color:var(--muted)}
     var max = parseFloat(target);
     var decimals = (target.split('.')[1] || '').length;
     if (reduced){ renderLED(container, target); return; }
-    var steps = 28;
-    var dur = 1500;
+    var dur = 2600;
     var t0 = null;
     function frame(ts){
       if (!t0) t0 = ts;
       var p = Math.min(1, (ts - t0) / dur);
       var eased = 1 - Math.pow(1 - p, 3);
-      var v;
-      if (dir === 'down'){
-        v = max - (max - 0) * (1 - eased);
-        v = max * eased;
-        v = max * (1 - (1 - eased));
-      }
-      v = max * eased;
+      var v = max * eased;
       renderLED(container, padNum(v, decimals));
       if (p < 1) requestAnimationFrame(frame);
       else renderLED(container, target);
