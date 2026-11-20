@@ -47,7 +47,7 @@ small,.label{font-family:var(--font);font-size:var(--fs-xs);letter-spacing:.18em
 .flap .half{position:absolute;left:0;width:100%;height:50%;overflow:hidden;background:#111b25;border:1px solid #1e2c3a}
 .flap .half.top{top:0;border-radius:4px 4px 0 0;z-index:2;transform-origin:bottom;background:#111b25}
 .flap .half.bot{top:50%;border-radius:0 0 4px 4px;z-index:1;background:#0b131c}
-.flap .ch{position:absolute;left:0;width:100%;height:1.4em;display:flex;align-items:center;justify-content:center;color:inherit;font-weight:inherit;font-size:inherit;line-height:1}
+.flap .ch{position:absolute;left:0;width:100%;height:1.4em;display:flex;align-items:center;justify-content:center;color:inherit;font-weight:inherit;font-size:inherit;line-height:1;transition:color .25s ease}
 .flap .half.top .ch{top:0}
 .flap .half.bot .ch{top:-0.7em}
 .flap.flipping .half.top{animation:foldTop .24s ease-in}
@@ -459,9 +459,15 @@ html[data-theme="light"] .fgrid a{color:var(--muted)}
     opts = opts || {};
     var dur = opts.duration || 1100;
     var stag = opts.stagger || 65;
-    var onSettle = opts.onSettle || null;
+    var onAllSettled = opts.onAllSettled || null;
+    var remaining = flaps.length;
+    function done(){
+      remaining--;
+      if (remaining === 0 && onAllSettled) onAllSettled();
+    }
+    if (remaining === 0){ if (onAllSettled) onAllSettled(); return; }
     flaps.forEach(function(item, idx){
-      if (reduced){ setFlap(item.el, item.target); if (onSettle) onSettle(item); return; }
+      if (reduced){ setFlap(item.el, item.target); done(); return; }
       var start = idx * stag;
       var d = dur + idx * 40;
       setTimeout(function(){
@@ -473,8 +479,8 @@ html[data-theme="light"] .fgrid a{color:var(--muted)}
             setTimeout(tick, 160);
           } else {
             flipTo(item.el, item.target);
-            if (onSettle) onSettle(item);
             setTimeout(function(){ item.el.classList.remove('flipping'); }, 480);
+            done();
           }
         })();
       }, start);
@@ -483,9 +489,20 @@ html[data-theme="light"] .fgrid a{color:var(--muted)}
 
   function fireTitle(){
     var t = document.getElementById('flapTitle');
-    spin(buildFlaps(t, 'エナジーを、\n事業の力へ。'), {
+    var flaps = buildFlaps(t, 'エナジーを、\n事業の力へ。');
+    spin(flaps, {
       duration:1600, stagger:95,
-      onSettle:function(item){ if (item.line === 2) item.el.classList.add('flap-orange'); }
+      onAllSettled:function(){
+        /* 全部止まってから、下の行を一文字ずつオレンジで書く */
+        var delay = 240;
+        flaps.forEach(function(item){
+          if (item.line !== 2) return;
+          (function(it, dl){
+            setTimeout(function(){ it.el.classList.add('flap-orange'); }, dl);
+          })(item, delay);
+          delay += 170;
+        });
+      }
     });
   }
 
