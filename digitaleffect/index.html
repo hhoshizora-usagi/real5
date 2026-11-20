@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>デジタルエフェクト集 | real5</title>
+<style>
+  :root{--bg:#0e141b;--surface:#151d27;--surface2:#1b2531;--line:#2a3746;--text:#e8edf3;--muted:#9aa7b5;--accent:#ff8a3c;--accent2:#3cc8ff;--accent3:#4ade80;--accent4:#ff5261}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:32px 20px 80px}
+  .wrap{max-width:1200px;margin:0 auto}
+  .page-head{margin-bottom:28px}
+  .page-head .crumb{font-size:12px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+  .page-head h1{font-size:clamp(24px,4vw,40px);font-weight:800;margin:10px 0 8px;letter-spacing:.02em}
+  .page-head h1 .accent{color:var(--accent)}
+  .page-head p{color:var(--muted);font-size:14px;max-width:640px}
+  .control{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:32px;display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field label{font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+  .field input,.field select{background:var(--surface2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 12px;font-size:14px;font-family:inherit}
+  .field input{width:150px}
+  .field input:focus,.field select:focus{outline:2px solid var(--accent);outline-offset:0;border-color:var(--accent)}
+  .field input[type=text]{width:auto}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:22px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+  .card-head{padding:16px 20px 0;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .card-head h2{font-size:15px;font-weight:700;letter-spacing:.02em}
+  .card-head .tag{font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 9px;white-space:nowrap}
+  .stage{flex:1;min-height:150px;display:flex;align-items:center;justify-content:center;padding:22px 20px;position:relative}
+  .stage.plate{background:radial-gradient(circle at 30% 20%,#1f2a38 0%,#121922 60%,#0b1016 100%);flex-direction:column;gap:10px}
+  .stage .unit{font-size:13px;color:var(--muted);letter-spacing:.06em}
+  .replay{position:absolute;top:10px;right:12px;background:var(--surface2);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit;opacity:0;transition:opacity .2s}
+  .card:hover .replay{opacity:1}
+  .replay:hover{color:var(--text);border-color:var(--accent)}
+  .card p.desc{margin:0 20px;padding:12px 0 16px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
+  .flap{display:inline-flex;gap:3px;font-family:"SF Mono","Menlo","Consolas",monospace}
+  .flap .flap-cell{width:1.1ch;display:inline-block;background:var(--surface2);border-radius:3px;height:1.5em;overflow:hidden;position:relative;text-align:center;line-height:1.5em;color:var(--accent);font-weight:700}
+  .led{display:inline-flex;gap:.4em;vertical-align:middle}
+  .led-dig{display:flex;flex-direction:column;gap:.09em}
+  .led-row{display:flex;gap:.09em}
+  .led-dot{width:.16em;height:.16em;border-radius:50%;background:#0f1a26;box-shadow:inset 0 0 1px rgba(0,0,0,.6)}
+  .led-dot.on{background:var(--c,var(--accent));box-shadow:0 0 6px var(--c,var(--accent)),0 0 2px var(--c,var(--accent))}
+  .seg{display:inline-flex;gap:.5em}
+  .seg-dig{position:relative;width:.62em;height:1.12em}
+  .seg-seg{position:absolute;background:#16212e;border-radius:2px;opacity:.16;transition:opacity .12s,background .12s}
+  .seg-seg.on{opacity:1;background:var(--c,var(--accent));box-shadow:0 0 5px var(--c,var(--accent))}
+  .seg-seg.h{height:.11em;width:.38em;left:.11em}
+  .seg-seg.v{width:.11em;height:.33em;top:.13em}
+  .seg-a{top:0}
+  .seg-b{right:0}.seg-c{right:0;bottom:0}
+  .seg-d{bottom:0;left:.11em}
+  .seg-e{left:0;bottom:0}.seg-f{left:0}
+  .seg-g{top:.48em;left:.11em}
+  .nixie{display:inline-flex;align-items:flex-end;gap:.4em}
+  .nixie-tube{position:relative;display:flex;align-items:flex-end;justify-content:center;padding:.2em .12em .08em;border-radius:.12em;background:linear-gradient(180deg,rgba(40,20,10,.5),rgba(10,6,3,.8));box-shadow:inset 0 0 .3em rgba(255,150,60,.25),0 0 .4em rgba(0,0,0,.5)}
+  .nixie-char{font-family:"SF Mono",monospace;font-size:1em;font-weight:700;color:rgba(255,150,70,.16);text-shadow:0 0 .08em rgba(255,150,70,.5),0 0 .15em rgba(255,120,40,.35);position:relative}
+  .nixie-char.on{color:#ffb070;text-shadow:0 0 .1em rgba(255,170,90,.9),0 0 .25em rgba(255,140,60,.7),0 0 .5em rgba(255,120,40,.4)}
+  .drum{display:inline-flex;gap:.35em}
+  .drum-cell{position:relative;width:.9em;height:1.4em;overflow:hidden;background:var(--surface2);border-radius:3px}
+  .drum-track{position:absolute;left:0;width:100%;transition:transform .06s linear}
+  .drum-num{height:1.4em;line-height:1.4em;text-align:center;color:var(--accent);font-weight:700;font-family:"SF Mono",monospace}
+  .clock{display:inline-flex;gap:.4em;align-items:center}
+  .clock .flap-cell{width:1.3ch;height:1.55em;font-size:.9em}
+  .clock .colon{color:var(--accent);font-weight:700;font-size:1.1em;padding:0 2px}
+  .scramble{font-family:"SF Mono",monospace;font-size:1.1em;letter-spacing:.06em;color:var(--accent);font-weight:700}
+  .typer{font-size:1em;letter-spacing:.02em;min-height:1.4em;color:var(--text);font-weight:600}
+  .typer .cursor{display:inline-block;width:.5em;height:1.1em;background:var(--accent);vertical-align:middle;margin-left:2px;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .typer .hl{color:var(--accent)}
+  .lcd{font-family:"SF Mono",monospace;color:#3f8a4a;letter-spacing:.06em;text-shadow:0 0 3px rgba(63,138,74,.4);font-size:1.4em;font-weight:700;background:#0a1a0d;padding:.15em .3em;border-radius:4px;box-shadow:inset 0 0 8px rgba(0,0,0,.7)}
+  .gauge{width:100%;display:flex;flex-direction:column;gap:10px}
+  .gauge .num{font-size:1.9em;font-weight:800;color:var(--accent);font-family:"SF Mono",monospace;text-align:center}
+  .gauge .bar{height:8px;background:var(--surface2);border-radius:999px;overflow:hidden}
+  .gauge .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));width:0;border-radius:999px;transition:width .1s linear}
+  .marquee{width:100%;overflow:hidden;background:#0a0f15;border-radius:6px;padding:10px 0}
+  .marquee-track{display:inline-block;white-space:nowrap;color:var(--accent);font-weight:700;font-size:1.1em;letter-spacing:.04em;text-shadow:0 0 6px rgba(255,138,60,.5);animation:marquee var(--mq-dur,12s) linear infinite}
+  @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+  body.blue{--accent:#3cc8ff;--accent2:#7c8cff;--accent3:#4ade80;--accent4:#ff5261}
+  body.green{--accent:#4ade80;--accent2:#22d3ee;--accent3:#ff8a3c;--accent4:#ff5261}
+  body.red{--accent:#ff5261;--accent2:#ff8a3c;--accent3:#4ade80;--accent4:#a78bfa}
+  @media (max-width:640px){body{padding:20px 14px 60px}.grid{grid-template-columns:1fr}.control{gap:14px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page-head">
+    <div class="crumb">real5 / showcase</div>
+    <h1>デジタル<span class="accent">エフェクト</span>集</h1>
+    <p>real5で使っているパタパタ・LEDから、セブンセグメント・ニキシー管まで。11種類の数字×文字エフェクトを一枚に並べました。</p>
+  </header>
+  <section class="control" aria-label="全体設定">
+    <div class="field"><label for="valueInput">数字・文字</label><input id="valueInput" type="text" value="137" maxlength="14" placeholder="137"></div>
+    <div class="field"><label for="dirSelect">方向</label><select id="dirSelect"><option value="up">カウントアップ（0 → 137）</option><option value="down">カウントダウン（999 → 137）</option></select></div>
+    <div class="field"><label for="speedSelect">速さ</label><select id="speedSelect"><option value="1400">ふつう</option><option value="2600" selected>ゆっくり</option><option value="4000">じっくり</option></select></div>
+    <div class="field"><label for="colorSelect">色</label><select id="colorSelect"><option value="orange" selected>オレンジ</option><option value="blue">ブルー</option><option value="green">グリーン</option><option value="red">レッド</option></select></div>
+  </section>
+  <main class="grid">
+    <article class="card" data-effect="flap"><div class="card-head"><h2>1. ハーフフラップ</h2><span class="tag">real5のパタパタ</span></div><div class="stage plate"><div id="fx-flap" class="flap"></div><div class="unit">パタパタ表示</div></div><p class="desc">上下の板がめくれ上がって数字が切り替わる、空港の掲示板と同じ方式。</p></article>
+    <article class="card" data-effect="led"><div class="card-head"><h2>2. LEDドットマトリクス</h2><span class="tag">real5のLED</span></div><div class="stage plate"><div id="fx-led"></div><div class="unit">点灯LED</div></div><p class="desc">5×7の点で数字を描く電光掲示板方式。点灯するドットに発光を持たせています。</p></article>
+    <article class="card" data-effect="seg"><div class="card-head"><h2>3. セブンセグメント</h2><span class="tag">電卓・情報板</span></div><div class="stage plate"><div id="fx-seg" class="seg"></div><div class="unit">7本の棒で表示</div></div><p class="desc">「8の字」の7本の棒を点け消しして数字を出す定番。軽くてシンプル。</p></article>
+    <article class="card" data-effect="nixie"><div class="card-head"><h2>4. ニキシー管</h2><span class="tag">レトロ</span></div><div class="stage plate"><div id="fx-nixie" class="nixie"></div><div class="unit">真空管のグロー表示</div></div><p class="desc">真空管の中で数字が暖色にボワ〜っと光る。レトロ・スチームパンク系に映えます。</p></article>
+    <article class="card" data-effect="drum"><div class="card-head"><h2>5. ドラムロール</h2><span class="tag">メーター</span></div><div class="stage plate"><div id="fx-drum" class="drum"></div><div class="unit">回転ドラム</div></div><p class="desc">数字のドラムがくるくる回って止まる。機械式メーターの動き。</p></article>
+    <article class="card" data-effect="clock"><div class="card-head"><h2>6. パタパタ時計</h2><span class="tag">リアルタイム</span></div><div class="stage plate"><div id="fx-clock" class="clock"></div><div class="unit">今の時刻</div></div><p class="desc">現在時刻をパタパタで表示。秒が変わるたびに板がめくれます。</p></article>
+    <article class="card" data-effect="scramble"><div class="card-head"><h2>7. スクランブル</h2><span class="tag">文字</span></div><div class="stage plate"><div id="fx-scramble" class="scramble"></div></div><p class="desc">ランダムな記号から左へ順に本物の文字へ変わっていく。</p></article>
+    <article class="card" data-effect="typer"><div class="card-head"><h2>8. タイプライター</h2><span class="tag">文字</span></div><div class="stage plate"><div id="fx-typer" class="typer"></div></div><p class="desc">1文字ずつ打ち込まれるように表示。最後のフレーズだけアクセント色。</p></article>
+    <article class="card" data-effect="lcd"><div class="card-head"><h2>9. 液晶ディスプレイ</h2><span class="tag">落ち着き系</span></div><div class="stage plate"><div id="fx-lcd" class="lcd"></div></div><p class="desc">光らない液晶風の表示。落ち着いた雰囲気のサイトに。</p></article>
+    <article class="card" data-effect="gauge"><div class="card-head"><h2>10. ゲージ連動セグメント</h2><span class="tag">数値＋バー</span></div><div class="stage plate"><div id="fx-gauge" class="gauge"></div></div><p class="desc">0〜100%の数字と一緒にバーが伸びる。進捗や達成率に。</p></article>
+    <article class="card" data-effect="marquee"><div class="card-head"><h2>11. 電光掲示板</h2><span class="tag">流れる文字</span></div><div class="stage plate"><div id="fx-marquee" class="marquee"><div class="marquee-track"></div></div></div><p class="desc">入力した文字が右から左へ流れる。日本語もOK。</p></article>
+  </main>
+</div>
+<script>
+function randomStr(len){var s='',c='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';for(var i=0;i<len;i++)s+=c[Math.floor(Math.random()*c.length)];return s}
+var LED_FONT={'0':['01110','10001','10001','10001','10001','10001','01110'],'1':['00100','01100','00100','00100','00100','00100','01110'],'2':['01110','10001','00001','00010','00100','01000','11111'],'3':['11111','00010','00100','00010','00001','10001','01110'],'4':['00010','00110','01010','10010','11111','00010','00010'],'5':['11111','10000','11110','00001','00001','10001','01110'],'6':['00110','01000','10000','11110','10001','10001','01110'],'7':['11111','00001','00010','00100','01000','01000','01000'],'8':['01110','10001','10001','01110','10001','10001','01110'],'9':['01110','10001','10001','01111','00001','00010','01100'],'.':['00000','00000','00000','00000','00000','00000','00100'],'-':['00000','00000','00000','11111','00000','00000','00000'],'%':['10001','00010','00100','00100','01000','10001','00001']};
+function renderLED(container,text){var leds=document.createElement('span');leds.className='led';text.split('').forEach(function(ch){var rows=LED_FONT[ch];if(!rows){return}var dig=document.createElement('span');dig.className='led-dig';rows.forEach(function(row){var r=document.createElement('span');r.className='led-row';row.split('').forEach(function(bit){var dot=document.createElement('span');dot.className='led-dot'+(bit==='1'?' on':'');r.appendChild(dot)});dig.appendChild(r)});leds.appendChild(dig)});container.appendChild(leds);return leds}
+function renderSeg(container,text){var map={'0':['a','b','c','d','e','f'],'1':['b','c'],'2':['a','b','g','e','d'],'3':['a','b','g','c','d'],'4':['f','g','b','c'],'5':['a','f','g','c','d'],'6':['a','f','e','d','c','g'],'7':['a','b','c'],'8':['a','b','c','d','e','f','g'],'9':['a','b','c','d','f','g'],'.':['d'],'%':['a','b','g','e','d','f']};var wrap=document.createElement('span');wrap.className='seg';text.split('').forEach(function(ch){var on=map[ch]||[];var dig=document.createElement('span');dig.className='seg-dig';['a','b','c','d','e','f','g'].forEach(function(seg){var s=document.createElement('span');var cls='h';if('bcef'.indexOf(seg)>=0)cls='v';s.className='seg-seg '+cls+' seg-'+seg+(on.indexOf(seg)>=0?' on':'');dig.appendChild(s)});wrap.appendChild(dig)});container.appendChild(wrap);return wrap}
+function animNum(el,to,opts){var dur=opts.dur||1400;var from=opts.from!=null?opts.from:0;var dec=opts.dec!=null?opts.dec:0;var onFrame=opts.onFrame;var t0=null;var fmt=function(v){return v.toFixed(dec)};function step(t){if(!t0)t0=t;var p=Math.min(1,(t-t0)/dur);p=p<0?0:1-Math.pow(1-p,3);var v=from+(to-from)*p;onFrame(fmt(v));if(p<1){requestAnimationFrame(step)}}requestAnimationFrame(step)}
+function fireFlap(){var c=document.getElementById('fx-flap');c.innerHTML='';var txt=state.value.replace(/[^0-9.]/g,'')||'137';var cells=txt.split('').map(function(ch){var d=document.createElement('span');d.className='flap-cell';d.textContent=ch;c.appendChild(d);return d});var frames=2;var cur=0;(function roll(){cells.forEach(function(cell){cell.textContent=String(Math.floor(Math.random()*10))});cur++;if(cur<frames){setTimeout(roll,110)}else{cells.forEach(function(cell,i){cell.textContent=txt[i]})}})()}
+function fireLED(){var c=document.getElementById('fx-led');c.innerHTML='';var to=parseFloat(state.value)||137;var dec=(state.value.indexOf('.')>=0)?1:0;var dir=state.dir==='down'?'down':'up';var from=dir==='down'?to*7:0;animNum(c,to,{from:from,dir:dir,dur:state.dur,dec:dec,onFrame:function(v){c.innerHTML='';renderLED(c,v)}})}
+function fireSeg(){var c=document.getElementById('fx-seg');c.innerHTML='';var to=parseFloat(state.value)||137;var dec=(state.value.indexOf('.')>=0)?1:0;var dir=state.dir==='down'?'down':'up';var from=dir==='down'?to*7:0;animNum(c,to,{from:from,dir:dir,dur:state.dur,dec:dec,onFrame:function(v){c.innerHTML='';renderSeg(c,v)}})}
+function fireNixie(){var c=document.getElementById('fx-nixie');c.innerHTML='';var to=state.value||'137';var dir=state.dir==='down'?'down':'up';var from=dir==='down'?'999':(to.indexOf('.')>=0?'0.0':'0');if(from==='0.0'&&to.indexOf('.')<0)from='0';if(from==='0'&&to.indexOf('.')>=0)from='0.0';var toN=parseFloat(to)||137;var fromN=parseFloat(from)||0;var dec=(to.indexOf('.')>=0)?1:0;animNum(c,toN,{from:fromN,dir:dir,dur:state.dur,dec:dec,onFrame:function(v){c.innerHTML='';var tube=document.createElement('div');tube.className='nixie-tube';v.split('').forEach(function(ch){var el=document.createElement('span');el.className='nixie-char on';el.textContent=ch;tube.appendChild(el)});c.appendChild(tube)}})}
+function fireDrum(){var c=document.getElementById('fx-drum');c.innerHTML='';var txt=state.value.replace(/[^0-9.]/g,'')||'137';var cells=txt.split('').map(function(){var cell=document.createElement('span');cell.className='drum-cell';var track=document.createElement('span');track.className='drum-track';for(var i=0;i<12;i++){var n=document.createElement('span');n.className='drum-num';n.textContent=i%10;track.appendChild(n)}cell.appendChild(track);c.appendChild(cell);return {cell:cell,track:track}});var dur=state.dur;cells.forEach(function(cc,i){var chars='0123456789';var target=txt[i];var frames=Math.ceil(dur/60);var cur=0;(function roll(){var r=Math.floor(Math.random()*10);cc.track.style.transform='translateY(-'+(r*1.4)+'em)';cur++;if(cur<frames){setTimeout(roll,60)}else{var idx=chars.indexOf(target);cc.track.style.transform='translateY(-'+(idx*1.4)+'em)'}})()})}
+var clockTimer=null;
+function fireClock(){var c=document.getElementById('fx-clock');var paint=function(){var d=new Date();var hh=String(d.getHours()).padStart(2,'0');var mm=String(d.getMinutes()).padStart(2,'0');var ss=String(d.getSeconds()).padStart(2,'0');c.innerHTML='';[hh[0],hh[1]].forEach(function(ch){var e=document.createElement('span');e.className='flap-cell';e.textContent=ch;c.appendChild(e)});var c1=document.createElement('span');c1.className='colon';c1.textContent=':';c.appendChild(c1);[mm[0],mm[1]].forEach(function(ch){var e=document.createElement('span');e.className='flap-cell';e.textContent=ch;c.appendChild(e)});var c2=document.createElement('span');c2.className='colon';c2.textContent=':';c.appendChild(c2);[ss[0],ss[1]].forEach(function(ch){var e=document.createElement('span');e.className='flap-cell';e.textContent=ch;c.appendChild(e)})};if(!clockTimer)clockTimer=setInterval(paint,1000);paint()}
+function fireScramble(){var c=document.getElementById('fx-scramble');var target='事業の力へ。';var glyphs='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&';var cur=0;var dur=state.dur;var steps=Math.max(8,Math.floor(dur/70));(function frame(){var txt='';for(var i=0;i<target.length;i++){if(i<cur)txt+=target[i];else if(i<cur+3)txt+=glyphs[Math.floor(Math.random()*glyphs.length)];else txt+=target[i]}c.textContent=txt;cur++;if(cur<=target.length){setTimeout(frame,dur/steps)}else{c.textContent=target}})()}
+var typerTimer=null;
+function fireTyper(){var c=document.getElementById('fx-typer');if(typerTimer)clearInterval(typerTimer);var full='リアル5の数字は、事業の力へ。';var hlFrom=full.indexOf('事業の力へ。');var i=0;c.innerHTML='';typerTimer=setInterval(function (){if(i<full.length){if(i===hlFrom){var span=document.createElement('span');span.className='hl';c.appendChild(span);for(var k=i;k<full.length;k++){span.textContent+=full[k]}c.appendChild(document.createElement('span')).className='cursor';clearInterval(typerTimer);return}c.appendChild(document.createTextNode(full[i]));var cur=c.querySelector('.cursor');if(!cur){cur=document.createElement('span');cur.className='cursor';c.appendChild(cur)}i++}else{clearInterval(typerTimer)}},Math.max(40,state.dur/60))}
+function fireLCD(){document.getElementById('fx-lcd').textContent=state.value||'137'}
+function fireGauge(){var c=document.getElementById('fx-gauge');c.innerHTML='';var num=document.createElement('div');num.className='num';num.textContent='0%';c.appendChild(num);var bar=document.createElement('div');bar.className='bar';var fill=document.createElement('i');bar.appendChild(fill);c.appendChild(bar);animNum(c,100,{from:0,dur:state.dur,dec:0,onFrame:function(v){num.textContent=Math.round(parseFloat(v))+'%';fill.style.width=Math.round(parseFloat(v))+'%'}})}
+function fireMarquee(){var c=document.getElementById('fx-marquee');var track=c.querySelector('.marquee-track');var msg=state.value||'事業の力へ。';track.textContent=msg+'   ';var w=c.offsetWidth;if(w<=0)w=600;var dur=Math.max(8,w/40);track.style.setProperty('--mq-dur',dur+'s')}
+var state={value:'137',dir:'up',dur:2600};
+var fireAll=function(){fireFlap();fireLED();fireSeg();fireNixie();fireDrum();fireScramble();fireTyper();fireLCD();fireGauge();fireMarquee()};
+function applyControls(){var v=document.getElementById('valueInput').value.trim();if(!v)v='137';state.value=v;state.dir=document.getElementById('dirSelect').value;state.dur=parseInt(document.getElementById('speedSelect').value,10);var col=document.getElementById('colorSelect').value;document.body.className=col==='orange'?'':col;fireAll()}
+document.getElementById('valueInput').addEventListener('input',applyControls);
+['dirSelect','speedSelect','colorSelect'].forEach(function(id){document.getElementById(id).addEventListener('change',applyControls)});
+document.querySelectorAll('.card').forEach(function(card){var btn=document.createElement('button');btn.className='replay';btn.textContent='もう一回';btn.type='button';card.querySelector('.stage').appendChild(btn);btn.addEventListener('click',function(){var eff=card.dataset.effect;if(eff==='flap')fireFlap();else if(eff==='led')fireLED();else if(eff==='seg')fireSeg();else if(eff==='nixie')fireNixie();else if(eff==='drum')fireDrum();else if(eff==='clock')fireClock();else if(eff==='scramble')fireScramble();else if(eff==='typer')fireTyper();else if(eff==='lcd')fireLCD();else if(eff==='gauge')fireGauge();else if(eff==='marquee')fireMarquee()})});
+var started=false;
+function startAll(){if(!started){started=true;fireAll()}}
+startAll();
+</script>
+</body>
+</html>
